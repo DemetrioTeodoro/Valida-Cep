@@ -9,23 +9,9 @@
   display: grid;
   align-items: center;
   justify-items: center;
-  min-height: 100svh;
+  text-align: center;
+  margin-top: 100px;
   font-family: var(--font-geist-sans);
-}
-
-.addressInputs {
-  border-radius: 100px;
-}
-
-.addressButtons {
-  border-radius: 20px;
-  width: 100px;
-}
-
-.addressSaveButtons {
-  border-radius: 20px;
-  width: 100px;
-  background-color: green;
 }
 
 @media (prefers-color-scheme: dark) {

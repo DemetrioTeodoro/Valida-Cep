@@ -2,6 +2,9 @@
 
 import React, { useCallback, useState } from "react";
 
+import { Button, Card, CardBody, CardFooter, CardHeader, CardText, CardTitle, Form, FormFeedback, FormGroup, Input, Label } from "reactstrap";
+
+import { validateZipCode } from "./utils/validateZipCode";
 import { saveToJsonFile } from "./utils/saveJsonFile";
 import { Address } from "./interfaces";
 
@@ -26,33 +29,20 @@ const emptyAddress = {
 export default function Home() {
 
   const [address, setAddress] = useState<Address>(emptyAddress);
+  const [isZipCodeInValid, setIsZipCodeInValid] = useState<boolean>(false);
 
   const onChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setAddress({ ...address, cep: event.target.value })
   }, [address]);
 
-  const validateZipCode = (cep: string): boolean => {
-    try {
-      const trimmedCep = cep.trim();
-      if (trimmedCep === "" || isNaN(Number(trimmedCep))) {
-        return false;
-      }
-      if (trimmedCep.length !== 8) {
-        return false;
-      }
-      return true;
-    } catch (error) {
-      return false;
-    }
-  };
-
   const handleSearchCep = useCallback(async () => {
     const isZipCode = validateZipCode(address.cep);
     if (!isZipCode) {
-      alert("Digite um cep válido, por favor!")
+      setIsZipCodeInValid(true);
       return
     }
 
+    setIsZipCodeInValid(false);
     const response = await fetch(`https://viacep.com.br/ws/${address.cep}/json/`)
     if (response.status === 200) {
       const addressByViaCep = await response.json()
@@ -63,6 +53,7 @@ export default function Home() {
   }, [address.cep]);
 
   const emptyFields = useCallback(() => {
+    setIsZipCodeInValid(false);
     setAddress(emptyAddress)
   }, [emptyAddress]);
 
@@ -72,26 +63,54 @@ export default function Home() {
 
   return (
     <div className={styles.page}>
-      <label>Digite seu cep:</label>
-      <input type="text" value={address.cep} maxLength={8} onChange={onChange} onBlur={handleSearchCep} className={styles.addressInputs} />
+      <Form>
+        <Card>
+          <CardHeader>
+            <FormGroup>
+              <Label for="zipCode">Cep:</Label>
+              <Input invalid={isZipCodeInValid} type="text" name="zipCode" id="zipCode" placeholder="Exemplo: 00000000" value={address.cep} maxLength={8} onChange={onChange} onBlur={handleSearchCep} />
+              {isZipCodeInValid && <FormFeedback>Ocorreu algo errado, digite o cep novamente</FormFeedback>}
+            </FormGroup>
+          </CardHeader>
 
-      <label>Logradouro:</label>
-      <input type="text" value={address.logradouro} readOnly className={styles.addressInputs} />
+          <CardBody>
+            <CardTitle tag="h5">Informações de busca do Endereço</CardTitle>
 
-      <label>Complemento:</label>
-      <input type="text" value={address.complemento} readOnly className={styles.addressInputs} />
+            <FormGroup>
+              <Label for="street">Logradouro:</Label>
+              <Input type="text" name="street" id="street" placeholder="Logradouro será preenchido" value={address.logradouro} readOnly />
+            </FormGroup>
 
-      <label>Bairro:</label>
-      <input type="text" value={address.bairro} readOnly className={styles.addressInputs} />
+            <FormGroup>
+              <Label for="complement">Complemento:</Label>
+              <Input type="text" name="complement" id="complement" placeholder="Complemento será preenchido" value={address.complemento} readOnly />
+            </FormGroup>
 
-      <label>Cidade:</label>
-      <input type="text" value={address.localidade} readOnly className={styles.addressInputs} />
+            <FormGroup>
+              <Label for="neighborhood">Bairro:</Label>
+              <Input type="text" name="neighborhood" id="neighborhood" placeholder="Bairro será preenchido" value={address.bairro} readOnly />
+            </FormGroup>
 
-      <label>Estado:</label>
-      <input type="text" value={address.estado} readOnly className={styles.addressInputs} />
+            <FormGroup>
+              <Label for="city">Cidade:</Label>
+              <Input type="text" name="city" id="city" placeholder="Cidade será preenchido" value={address.localidade} readOnly />
+            </FormGroup>
 
-      <button onClick={emptyFields} className={styles.addressButtons}>Limpar</button>
-      <button onClick={saveFields} className={styles.addressSaveButtons}>Salvar</button>
+            <FormGroup>
+              <Label for="state">Estado:</Label>
+              <Input type="text" name="state" id="state" placeholder="Estado será preenchido" value={address.estado} readOnly />
+            </FormGroup>
+
+          </CardBody>
+
+          <CardFooter>
+            <Button color="secondary" onClick={emptyFields}>Limpar</Button>{' '}
+            <Button color="success" onClick={saveFields}>Salvar</Button>
+          </CardFooter>
+
+        </Card>
+      </Form>
+
     </div>
   );
 }
